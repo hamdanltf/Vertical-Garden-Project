@@ -56,11 +56,12 @@
                     <form>
                         <div class="form-group">
                             <label for="watercontrol">Water Control</label>
-                            <input type="number" class="form-control" id="watercontrol" placeholder="Enter command">
+                            <input type="number" onkeypress='validate(event)' class="form-control" id="watercontrol"
+                                placeholder="Enter command">
                             <small id="waterHelp" class="form-text text-muted">Type "1" to turn on, type "0" to turn
                                 off</small>
                         </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button onclick="writeData()" type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>
                 <div class="col-md-6">
@@ -131,6 +132,43 @@
             measurementId: "G-JLM24B30KL"
         };
         firebase.initializeApp(config);
+
+        function writeData() {
+            firebase.database().ref("air").set({
+                relay_1: document.getElementById("watercontrol").value
+            });
+            getData();
+        }
+
+        function getData() {
+            firebase.database().ref('/').once('value', function (snapshot) {
+                snapshot.forEach(function (childSnapshot) {
+                    var childKey = childSnapshot.key;
+                    var childData = childSnapshot.val();
+                    document.getElementById("condition").innerHTML = childData['relay_1'];
+                })
+            })
+        }
+        getData();
+    </script>
+    <script>
+        function validate(evt) {
+            var theEvent = evt || window.event;
+
+            // Handle paste
+            if (theEvent.type === 'paste') {
+                key = event.clipboardData.getData('text/plain');
+            } else {
+                // Handle key press
+                var key = theEvent.keyCode || theEvent.which;
+                key = String.fromCharCode(key);
+            }
+            var regex = /[0-1]|\./;
+            if (!regex.test(key)) {
+                theEvent.returnValue = false;
+                if (theEvent.preventDefault) theEvent.preventDefault();
+            }
+        }
     </script>
     <script src="../assets/js/style.js"></script>
     <script src="../assets/js/table.js"></script>
