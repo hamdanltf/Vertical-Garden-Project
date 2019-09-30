@@ -15,8 +15,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define precision 12 // OneWire precision Dallas Sensor
 
 //Relay
-#define Relay_1 5
-#define Relay_2 4
+#define relay_1 5
+#define relay_2 4
 
 //Firebase
 #define FIREBASE_HOST "vertical-garden-project.firebaseio.com"
@@ -34,8 +34,8 @@ int sensor_tanah = A0;
 int output_tanah ;
 
 //Relay
-int state_1 = 1;
-int state_2 = 1;
+String air_1;
+String air_2;
 
 //NTP
 char daysOfTheWeek[7][12] = {"Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
@@ -56,10 +56,8 @@ void setup(void)
   sensors.setResolution(T2, precision);
 
   //Relay
-  pinMode(Relay_1, OUTPUT);
-  pinMode(Relay_2, OUTPUT);
-  digitalWrite(Relay_1, state_1);
-  digitalWrite(Relay_2, state_2);
+  pinMode(relay_1, OUTPUT);
+  pinMode(relay_2, OUTPUT);
 
   // connect to wifi.
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -74,8 +72,8 @@ void setup(void)
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.setInt("Relay_1", 0);
-  Firebase.setInt("Relay_2", 0);
+  Firebase.setInt("air/relay_1", 0);
+  Firebase.setInt("air/relay_2", 0);
 
   //NTP
   timeClient.begin();
@@ -126,14 +124,15 @@ void loop(void)
   //sensor tanah bubar
 
   //Relay Mulai
-  state_1 = Firebase.getInt("Relay_1");
-  state_2 = Firebase.getInt("Relay_2");
-  Serial.print("Relay_1: ");
-  Serial.println(state_1);
-  digitalWrite(Relay_1, !state_1);
-  Serial.print("Relay_2: ");
-  Serial.println(state_2);
-  digitalWrite(Relay_2, !state_2);
+  air_1 = Firebase.getString("air/relay_1");
+  if  (air_1 != "0") {
+    Serial.println("air nyala");
+    digitalWrite(relay_1, HIGH);
+  }
+  else {
+    Serial.println("air tewas");
+    digitalWrite(relay_1, LOW);
+  }
   //Relay bubar
 
   //Firebase Mulai
