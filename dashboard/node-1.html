@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.semanticui.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="../style.css">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Viga" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+
+    <title>Vertical Garden | Control Center</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><b>Control Center </b><span class="badge badge-light">Node-1</span></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ml-auto">
+                    <a class="nav-item nav-link active" href="#">node-01</a>
+                    <a class="nav-item nav-link" href="node-2.html">node-02</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container text-center title">
+        <h3><b>Recent Report</b> <span class="badge badge-dark">Node-1</span></h3>
+        <hr>
+    </div>
+
+    <div class="container-fluid">
+        <div class="container">
+            <div class="row graph">
+                <div class="col-md-6">
+                    <div class="chart">
+                        <canvas id="myChart-kelembaban"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart">
+                        <canvas id="myChart-suhu"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row control mx-auto text-right">
+                <div class="col-md-6">
+                    <form>
+                        <div class="form-group">
+                            <label for="watercontrol">Water Control</label>
+                            <input type="number" onkeypress='validate(event)' class="form-control" id="watercontrol"
+                                placeholder="Enter command">
+                            <small id="waterHelp" class="form-text text-muted">Type "1" to turn on, type "0" to turn
+                                off</small>
+                        </div>
+                        <button onclick="writeData()" type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <form>
+                        <div class="form-group">
+                            <label for="fertilizercontrol">Fertilizer Control</label>
+                            <input type="number" class="form-control" id="fertilizercontrol"
+                                aria-describedby="emailHelp" placeholder="Enter command">
+                            <small id="fertilizerHelp" class="form-text text-muted">Type "1" to turn on, type "0" to
+                                turn
+                                off</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-12 table">
+                <table id="table" style="width:100%">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Temp &#8451;</th>
+                            <th>Moisture %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <div class="media">
+                <img class="align-self-center" src="../SVG/cereal.svg" alt="Generic placeholder image">
+                <div class="media-body">
+                    <h5 class="mt-0">Vertical Garden Monitoring System</h5>
+                    <p>Final Project of <b>Desar Segal Budiawan</b>, Telecommunication Engineering Telkom University
+                        Bandung
+                    </p>
+                    <p class="mb-0">Dashboard and System developed by <a
+                            href="https://www.linkedin.com/in/mhamdanlatief/"><b>&copy; Hamdan Latief 2019</b></a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.semanticui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyB-q0W3wizV4aia-xQ9wtYU22juOkpAdL4",
+            authDomain: "vertical-garden-project.firebaseapp.com",
+            databaseURL: "https://vertical-garden-project.firebaseio.com",
+            projectId: "vertical-garden-project",
+            measurementId: "G-JLM24B30KL"
+        };
+        firebase.initializeApp(config);
+
+        function writeData() {
+            firebase.database().ref("air").set({
+                relay_1: document.getElementById("watercontrol").value
+            });
+            getData();
+        }
+
+        function getData() {
+            firebase.database().ref('/').once('value', function (snapshot) {
+                snapshot.forEach(function (childSnapshot) {
+                    var childKey = childSnapshot.key;
+                    var childData = childSnapshot.val();
+                    document.getElementById("condition").innerHTML = childData['relay_1'];
+                })
+            })
+        }
+        getData();
+    </script>
+    <script>
+        function validate(evt) {
+            var theEvent = evt || window.event;
+
+            // Handle paste
+            if (theEvent.type === 'paste') {
+                key = event.clipboardData.getData('text/plain');
+            } else {
+                // Handle key press
+                var key = theEvent.keyCode || theEvent.which;
+                key = String.fromCharCode(key);
+            }
+            var regex = /[0-1]|\./;
+            if (!regex.test(key)) {
+                theEvent.returnValue = false;
+                if (theEvent.preventDefault) theEvent.preventDefault();
+            }
+        }
+    </script>
+    <script src="../assets/js/node-1/style.js"></script>
+    <script src="../assets/js/node-1/table.js"></script>
+    <script src="../assets/js/node-1/index-suhu.js"></script>
+    <script src="../assets/js/node-1/index-lembab.js"></script>
+
+</body>
+
+</html>
