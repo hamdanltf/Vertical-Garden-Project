@@ -15,8 +15,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define precision 12 // OneWire precision Dallas Sensor
 
 //Relay
-#define relay_1 5
-#define relay_2 4
+#define relay_1 5 //D1
+#define relay_2 4 //D2
 
 //Firebase
 #define FIREBASE_HOST "vertical-garden-project.firebaseio.com"
@@ -72,8 +72,8 @@ void setup(void)
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.setInt("air/relay_1", 0);
-  Firebase.setInt("air/relay_2", 0);
+  Firebase.set("air/relay_1", "0");
+  Firebase.set("air/relay_2", "0");
 
   //NTP
   timeClient.begin();
@@ -150,6 +150,6 @@ void loop(void)
   root.prettyPrintTo(Serial);
 
   Firebase.push("vertical_garden", root);
-  delay(5000);
+  delay(1000);
   //Firebase Bubar
 }
