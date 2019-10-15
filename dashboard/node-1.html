@@ -81,13 +81,13 @@
                     <form>
                         <div class="form-group">
                             <label for="fertilizercontrol">Fertilizer Control</label>
-                            <input type="number" class="form-control" id="fertilizercontrol"
-                                aria-describedby="emailHelp" placeholder="Enter command" disabled>
+                            <input type="number" onkeypress='validate(event)' class="form-control"
+                                id="fertilizercontrol" placeholder="Enter command">
                             <small id="fertilizerHelp" class="form-text text-muted">Type "1" to turn on, type "0" to
                                 turn
                                 off</small>
                         </div>
-                        <button type="submit" class="btn btn-secondary" disabled>Submit</button>
+                        <button onclick="writeData()" type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>
             </div>
@@ -165,6 +165,37 @@
         }
         getData();
     </script>
+
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyB-q0W3wizV4aia-xQ9wtYU22juOkpAdL4",
+            authDomain: "vertical-garden-project.firebaseapp.com",
+            databaseURL: "https://vertical-garden-project.firebaseio.com",
+            projectId: "vertical-garden-project",
+            measurementId: "G-JLM24B30KL"
+        };
+        firebase.initializeApp(config);
+
+        function writeData() {
+            firebase.database().ref("pupuk").set({
+                servo_1: document.getElementById("fertilizercontrol").value
+            });
+            getData();
+        }
+
+        function getData() {
+            firebase.database().ref('/').once('value', function (snapshot) {
+                snapshot.forEach(function (childSnapshot) {
+                    var childKey = childSnapshot.key;
+                    var childData = childSnapshot.val();
+                    document.getElementById("condition").innerHTML = childData['servo_1'];
+                })
+            })
+        }
+        getData();
+    </script>
+
     <script>
         function validate(evt) {
             var theEvent = evt || window.event;
