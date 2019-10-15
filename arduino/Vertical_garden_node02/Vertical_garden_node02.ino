@@ -4,6 +4,10 @@
 #include <DallasTemperature.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Servo.h>
+
+//Servo
+Servo myservo;
 
 //NTP
 const long utcOffsetInSeconds = 25200;
@@ -15,8 +19,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define precision 12 // OneWire precision Dallas Sensor
 
 //Relay
-//#define relay_1 5
-//#define relay_2 4
+#define relay_1 5 //D1
+#define relay_2 4 //D2
 
 //Firebase
 #define FIREBASE_HOST "vertical-garden-project.firebaseio.com"
@@ -34,8 +38,12 @@ int sensor_tanah = A0;
 int output_tanah ;
 
 //Relay
-//String air_1;
-//String air_2;
+String air_1;
+String air_2;
+
+//Servo
+String pupuk_1;
+String pupuk_2;
 
 //NTP
 char daysOfTheWeek[7][12] = {"Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
@@ -43,6 +51,9 @@ char daysOfTheWeek[7][12] = {"Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat"
 void setup(void)
 {
   Serial.begin(115200); //Start serial port
+
+  //Servo
+  myservo.attach(0);  // attaches the servo on GIO2 to the servo object
 
   //DS18B20
   Serial.println("Dallas Temperature IC Control Library");
@@ -56,8 +67,8 @@ void setup(void)
   sensors.setResolution(T2, precision);
 
   //Relay
-//  pinMode(relay_1, OUTPUT);
-//  pinMode(relay_2, OUTPUT);
+  pinMode(relay_1, OUTPUT);
+  pinMode(relay_2, OUTPUT);
 
   // connect to wifi.
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -72,8 +83,10 @@ void setup(void)
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-//  Firebase.setInt("air/relay_1", 0);
-//  Firebase.setInt("air/relay_2", 0);
+  Firebase.set("air/relay_1", "0");
+  Firebase.set("air/relay_2", "0");
+  Firebase.set("pupuk/servo_1", "0");
+  Firebase.set("pupuk/servo_2", "0");
 
   //NTP
   timeClient.begin();
@@ -103,6 +116,9 @@ void printData(DeviceAddress deviceAddress)
 
 void loop(void)
 {
+  //Servo
+  int pos;
+
   //NTP
   timeClient.update();
   //  Serial.print(daysOfTheWeek[timeClient.getDay()]);
@@ -124,16 +140,33 @@ void loop(void)
   //sensor tanah bubar
 
   //Relay Mulai
-//  air_1 = Firebase.getString("air/relay_1");
-//  if  (air_1 != "0") {
-//    Serial.println("air nyala");
-//    digitalWrite(relay_1, HIGH);
-//  }
-//  else {
-//    Serial.println("air tewas");
-//    digitalWrite(relay_1, LOW);
-//  }
+  air_2 = Firebase.getString("air/relay_2");
+  if  (air_2 != "0") {
+    Serial.println("air nyala");
+    digitalWrite(relay_2, HIGH);
+  }
+  else {
+    Serial.println("air tewas");
+    digitalWrite(relay_2, LOW);
+  }
   //Relay bubar
+
+  //Servo Mulai
+  pupuk_2 = Firebase.getString("pupuk/servo_2");
+  if  (pupuk_2 != "0") {
+    for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+      // in steps of 1 degree
+      myservo.write(pos);              // tell servo to go to position in variable 'pos'
+      delay(15);                       // waits 15ms for the servo to reach the position
+    }
+    delay (2000);
+    for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+      myservo.write(pos);              // tell servo to go to position in variable 'pos'
+      delay(15);                       // waits 15ms for the servo to reach the position
+    }
+    Firebase.set("pupuk/servo_2", "0");
+  }
+  //Servo Bubar
 
   //Firebase Mulai
   StaticJsonBuffer<256> jsonBuffer;
@@ -150,6 +183,6 @@ void loop(void)
   root.prettyPrintTo(Serial);
 
   Firebase.push("vertical_garden", root);
-  delay(5000);
+  delay(1000);
   //Firebase Bubar
 }
