@@ -4,6 +4,10 @@
 #include <DallasTemperature.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Servo.h>
+
+//Servo
+Servo myservo;
 
 //NTP
 const long utcOffsetInSeconds = 25200;
@@ -37,12 +41,19 @@ int output_tanah ;
 String air_1;
 String air_2;
 
+//Servo
+String pupuk_1;
+String pupuk_2;
+
 //NTP
 char daysOfTheWeek[7][12] = {"Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
 
 void setup(void)
 {
   Serial.begin(115200); //Start serial port
+
+  //Servo
+  myservo.attach(0);  // attaches the servo on GIO2 to the servo object
 
   //DS18B20
   Serial.println("Dallas Temperature IC Control Library");
@@ -74,6 +85,8 @@ void setup(void)
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.set("air/relay_1", "0");
   Firebase.set("air/relay_2", "0");
+  Firebase.set("pupuk/servo_1", "0");
+  Firebase.set("pupuk/servo_2", "0");
 
   //NTP
   timeClient.begin();
@@ -103,6 +116,9 @@ void printData(DeviceAddress deviceAddress)
 
 void loop(void)
 {
+  //Servo
+  int pos;
+
   //NTP
   timeClient.update();
   //  Serial.print(daysOfTheWeek[timeClient.getDay()]);
@@ -134,6 +150,23 @@ void loop(void)
     digitalWrite(relay_1, LOW);
   }
   //Relay bubar
+
+  //Servo Mulai
+  pupuk_1 = Firebase.getString("pupuk/servo_1");
+  if  (pupuk_1 != "0") {
+    for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+      // in steps of 1 degree
+      myservo.write(pos);              // tell servo to go to position in variable 'pos'
+      delay(15);                       // waits 15ms for the servo to reach the position
+    }
+    delay (2000);
+    for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+      myservo.write(pos);              // tell servo to go to position in variable 'pos'
+      delay(15);                       // waits 15ms for the servo to reach the position
+    }
+    Firebase.set("pupuk/servo_1", "0");
+  }
+  //Servo Bubar
 
   //Firebase Mulai
   StaticJsonBuffer<256> jsonBuffer;
