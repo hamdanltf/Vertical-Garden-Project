@@ -25,8 +25,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 //Firebase
 #define FIREBASE_HOST "vertical-garden-project.firebaseio.com"
 #define FIREBASE_AUTH "FIHGNRi2tFbyezMZrSFjGbErax28MdTDA839h6wY"
-#define WIFI_SSID "Wifi Belakang"
-#define WIFI_PASSWORD "bismillahaja"
+#define WIFI_SSID "desar-Satellite-C55-B"
+#define WIFI_PASSWORD "BzRuL3wC"
 
 //DS18B20
 OneWire oneWire(ONE_WIRE_BUS);
