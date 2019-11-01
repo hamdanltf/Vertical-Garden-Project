@@ -141,7 +141,7 @@ void loop(void)
 
   //Relay Mulai
   air_1 = Firebase.getString("air/relay_1");
-  if  (air_1 != "0") {
+  if  (air_1 == "1") {
     Serial.println("air nyala");
     digitalWrite(relay_1, HIGH);
   }
@@ -153,7 +153,7 @@ void loop(void)
 
   //Servo Mulai
   pupuk_1 = Firebase.getString("pupuk/servo_1");
-  if  (pupuk_1 != "0") {
+  if  (pupuk_1 == "1") {
     for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
       // in steps of 1 degree
       myservo.write(pos);              // tell servo to go to position in variable 'pos'
