@@ -64,3 +64,35 @@
 .footer .media-body {
     margin-left: 50px;
 }
+
+.card {
+    border-radius: 30px;
+    width: 100%;
+}
+
+.card .card-title {
+    margin-top: 30px;
+    font-weight: bold;
+    font-size: 20pt;
+}
+
+.card .on-off {
+    margin-bottom: 30px;
+}
+
+.card img {
+    width: 40%;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.btn {
+    width: 50%;
+    margin-top: 20px;
+}
+
+@media (max-width: 575.98px) {
+    .card .card-head {
+        display: none;
+    }
+}
