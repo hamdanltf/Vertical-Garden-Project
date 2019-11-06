@@ -64,22 +64,33 @@
                     </div>
                 </div>
             </div>
-            <div class="row control mx-auto text-right">
-                <div class="col-md-12">
-                    <form>
-                        <div class="form-group">
-                            <label for="watercontrol">Water Control</label>
-                            <input type="number" onkeypress='validate(event)' class="form-control" id="watercontrol"
-                                placeholder="Enter command">
-                            <br>
-                            <label for="fertilizercontrol">Fertilizer Control</label>
-                            <input type="number" onkeypress='validate(event)' class="form-control"
-                                id="fertilizercontrol" placeholder="Enter command">
-                            <small id="waterHelp" class="form-text text-muted">Type "1" to turn on, type "0" to turn
-                                off</small>
+            <div class="row control mx-auto text-center">
+                <div class="card mx-auto">
+                    <div class="row no-gutters">
+                        <div class="col-md-4 card-head">
+                            <img src="../SVG/fertilizer.svg" class="card-img" alt="...">
                         </div>
-                        <button onclick="writeData()" type="submit" class="btn btn-primary">Submit</button>
-                    </form>
+                        <div class="col-md-8 mx-auto">
+                            <div class="card-body">
+                                <h5 class="card-title">Fertilizer Control</h5>
+                                <p class="card-text">Jangan lupa beri pupuk setiap 3 bulan sekali!</p>
+                                <div class="row on-off">
+                                    <!-- <div class="col-6 text-right">
+                                        <input class="btn btn-danger btn-lg off" type="button"
+                                            onkeypress='validate(event)' value="OFF" onclick="funcoff()" id="off">
+                                    </div>
+                                    <div class="col-6 text-left">
+                                        <input class="btn btn-primary btn-lg on" type="button"
+                                            onkeypress='validate(event)' value="ON" onclick="funcon()" id="on">
+                                    </div> -->
+                                    <div class="col-12 text-center ">
+                                        <input class="btn btn-warning btn-lg oto" type="button"
+                                            onkeypress='validate(event)' value="ON" onclick="funcoto()" id="oto">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-12 table">
@@ -117,6 +128,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script src="sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
@@ -130,63 +143,22 @@
     <script>
         // Initialize Firebase
         var config = {
-            apiKey: "AIzaSyB-q0W3wizV4aia-xQ9wtYU22juOkpAdL4",
-            authDomain: "vertical-garden-project.firebaseapp.com",
-            databaseURL: "https://vertical-garden-project.firebaseio.com",
-            projectId: "vertical-garden-project",
-            storageBucket: "vertical-garden-project.appspot.com",
-            messagingSenderId: "650011838606",
-            appId: "1:650011838606:web:5b4e574d3bcca09fd161df",
-            measurementId: "G-9J6KFZNCP0"
+            apiKey: "AIzaSyA6pqDblEmNwYkothwwubDVd4kOgBrxlfU",
+            authDomain: "verticalgarden-project.firebaseapp.com",
+            databaseURL: "https://verticalgarden-project.firebaseio.com",
+            projectId: "verticalgarden-project",
+            storageBucket: "verticalgarden-project.appspot.com",
+            messagingSenderId: "958789288546",
+            appId: "1:958789288546:web:0de0a8fe1a230126e0073b",
+            measurementId: "G-GZBVEKTCMY"
         };
         firebase.initializeApp(config);
-
-        function writeData() {
-            firebase.database().ref("air").set({
-                relay_2: document.getElementById("watercontrol").value
-            });
-            firebase.database().ref("pupuk").set({
-                servo_2: document.getElementById("fertilizercontrol").value
-            });
-            getData();
-        }
-
-        function getData() {
-            firebase.database().ref('/').once('value', function (snapshot) {
-                snapshot.forEach(function (childSnapshot) {
-                    var childKey = childSnapshot.key;
-                    var childData = childSnapshot.val();
-                    document.getElementById("data").innerHTML = "Air: " + childData['relay_2'] +
-                        "Pupuk: " + childData['servo_2'];
-                })
-            })
-        }
-        getData();
-    </script>
-
-    <script>
-        function validate(evt) {
-            var theEvent = evt || window.event;
-
-            // Handle paste
-            if (theEvent.type === 'paste') {
-                key = event.clipboardData.getData('text/plain');
-            } else {
-                // Handle key press
-                var key = theEvent.keyCode || theEvent.which;
-                key = String.fromCharCode(key);
-            }
-            var regex = /[0-1]|\./;
-            if (!regex.test(key)) {
-                theEvent.returnValue = false;
-                if (theEvent.preventDefault) theEvent.preventDefault();
-            }
-        }
     </script>
     <script src="../assets/js/node-2/style.js"></script>
     <script src="../assets/js/node-2/table.js"></script>
     <script src="../assets/js/node-2/index-suhu.js"></script>
     <script src="../assets/js/node-2/index-lembab.js"></script>
+    <script src="../assets/js/node-2/on-off.js"></script>
 
 </body>
 
