@@ -23,10 +23,10 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #define relay_2 4 //D2
 
 //Firebase
-#define FIREBASE_HOST "vertical-garden-project.firebaseio.com"
-#define FIREBASE_AUTH "FIHGNRi2tFbyezMZrSFjGbErax28MdTDA839h6wY"
-#define WIFI_SSID "desar-Satellite-C55-B"
-#define WIFI_PASSWORD "BzRuL3wC"
+#define FIREBASE_HOST "verticalgarden-project.firebaseio.com"
+#define FIREBASE_AUTH "nPdSyY5tQPBZ6WFtHNRKbGmYbd3YwNyCEj1e0THK"
+#define WIFI_SSID "hamdan"
+#define WIFI_PASSWORD ""
 
 //DS18B20
 OneWire oneWire(ONE_WIRE_BUS);
@@ -83,10 +83,8 @@ void setup(void)
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.set("air/relay_1", "0");
-  Firebase.set("air/relay_2", "0");
-  Firebase.set("pupuk/servo_1", "0");
-  Firebase.set("pupuk/servo_2", "0");
+  Firebase.set("pupuk/servo_1", "off");
+  Firebase.set("pupuk/servo_2", "off");
 
   //NTP
   timeClient.begin();
@@ -140,8 +138,8 @@ void loop(void)
   //sensor tanah bubar
 
   //Relay Mulai
-  air_1 = Firebase.getString("air/relay_1");
-  if  (air_1 == "1") {
+  //  air_1 = Firebase.getString("air/relay_1");
+  if  (sensors.getTempC(T1) >= 30) {
     Serial.println("air nyala");
     digitalWrite(relay_1, HIGH);
   }
@@ -153,18 +151,18 @@ void loop(void)
 
   //Servo Mulai
   pupuk_1 = Firebase.getString("pupuk/servo_1");
-  if  (pupuk_1 == "1") {
+  if  (pupuk_1 == "on") {
     for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
       // in steps of 1 degree
       myservo.write(pos);              // tell servo to go to position in variable 'pos'
       delay(15);                       // waits 15ms for the servo to reach the position
     }
-    delay (2000);
+    delay (10000);
     for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
       myservo.write(pos);              // tell servo to go to position in variable 'pos'
       delay(15);                       // waits 15ms for the servo to reach the position
     }
-    Firebase.set("pupuk/servo_1", "0");
+    Firebase.set("pupuk/servo_1", "off");
   }
   //Servo Bubar
 
