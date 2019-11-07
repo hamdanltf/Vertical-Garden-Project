@@ -42,7 +42,7 @@ async function main() {
 
             if (parameter.node == 'node-01') {
                 if (parameter.suhu >= 30) {
-                    bot.sendMessage(562592345, "Suhu node-1 sudah melebihi 30 derajat, Penyiraman aktif")
+                    bot.sendMessage(497620430, "die yu bith! mader faker!")
                 }
             }
 

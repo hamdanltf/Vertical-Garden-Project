@@ -1,18 +1,29 @@
+#include <TimeLib.h>
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 #include <FirebaseArduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <NTPClient.h>
-#include <WiFiUdp.h>
 #include <Servo.h>
 
 //Servo
 Servo myservo;
 
-//NTP
-const long utcOffsetInSeconds = 25200;
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
+const char ssid[] = "hamdan";  //  your network SSID (name)
+const char pass[] = "";       // your network password
+
+// NTP Servers:
+static const char ntpServerName[] = "us.pool.ntp.org";
+
+const int timeZone = 7;     // Central European Time
+
+WiFiUDP Udp;
+unsigned int localPort = 8888;  // local port to listen for UDP packets
+
+time_t getNtpTime();
+void digitalClockDisplay();
+void printDigits(int digits);
+void sendNTPpacket(IPAddress &address);
 
 //DS18B20
 #define ONE_WIRE_BUS 2 // Data wire is plugged into port 9 on the Arduino
@@ -25,8 +36,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 //Firebase
 #define FIREBASE_HOST "verticalgarden-project.firebaseio.com"
 #define FIREBASE_AUTH "nPdSyY5tQPBZ6WFtHNRKbGmYbd3YwNyCEj1e0THK"
-#define WIFI_SSID "hamdan"
-#define WIFI_PASSWORD ""
 
 //DS18B20
 OneWire oneWire(ONE_WIRE_BUS);
@@ -44,13 +53,32 @@ String air_2;
 //Servo
 String pupuk_1;
 String pupuk_2;
+String pupuk_status;
 
-//NTP
-char daysOfTheWeek[7][12] = {"Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
-
-void setup(void)
+void setup()
 {
-  Serial.begin(115200); //Start serial port
+  Serial.begin(115200);
+  while (!Serial) ; // Needed for Leonardo only
+  delay(250);
+  Serial.println("TimeNTP Example");
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.print("IP number assigned by DHCP is ");
+  Serial.println(WiFi.localIP());
+  Serial.println("Starting UDP");
+  Udp.begin(localPort);
+  Serial.print("Local port: ");
+  Serial.println(Udp.localPort());
+  Serial.println("waiting for sync");
+  setSyncProvider(getNtpTime);
+  setSyncInterval(300);
 
   //Servo
   myservo.attach(0);  // attaches the servo on GIO2 to the servo object
@@ -71,25 +99,24 @@ void setup(void)
   pinMode(relay_2, OUTPUT);
 
   // connect to wifi.
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("connecting");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-  }
-  Serial.println();
-  Serial.print("connected: ");
-  Serial.println(WiFi.localIP());
+  //  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  //  Serial.print("connecting");
+  //  while (WiFi.status() != WL_CONNECTED) {
+  //    Serial.print(".");
+  //    delay(500);
+  //  }
+  //  Serial.println();
+  //  Serial.print("connected: ");
+  //  Serial.println(WiFi.localIP());
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
   Firebase.set("pupuk/servo_1", "off");
   Firebase.set("pupuk/servo_2", "off");
-
-  //NTP
-  timeClient.begin();
 }
-// function to print a device address
+
+time_t prevDisplay = 0; // when the digital clock was displayed
+
 void printAddress(DeviceAddress deviceAddress)
 {
   for (uint8_t i = 0; i < 8; i++)
@@ -99,7 +126,7 @@ void printAddress(DeviceAddress deviceAddress)
     Serial.print(deviceAddress[i], HEX);
   }
 }
-// function to print the temperature for a device
+
 void printTemperature(DeviceAddress deviceAddress)
 {
   float tempC = sensors.getTempC(deviceAddress);
@@ -112,21 +139,10 @@ void printData(DeviceAddress deviceAddress)
   Serial.println();
 }
 
-void loop(void)
+void loop()
 {
   //Servo
   int pos;
-
-  //NTP
-  timeClient.update();
-  //  Serial.print(daysOfTheWeek[timeClient.getDay()]);
-  //  Serial.print(", ");
-  //  Serial.print(timeClient.getHours());
-  //  Serial.print(":");
-  //  Serial.print(timeClient.getMinutes());
-  //  Serial.print(":");
-  //  Serial.println(timeClient.getSeconds());
-  //  Serial.println(timeClient.getFormattedTime());
 
   //DS18B20 Mulai
   sensors.requestTemperatures();
@@ -140,11 +156,11 @@ void loop(void)
   //Relay Mulai
   //  air_1 = Firebase.getString("air/relay_1");
   if  (sensors.getTempC(T1) >= 30) {
-    Serial.println("air nyala");
+    //    Serial.println("air nyala");
     digitalWrite(relay_1, HIGH);
   }
   else {
-    Serial.println("air tewas");
+    //    Serial.println("air tewas");
     digitalWrite(relay_1, LOW);
   }
   //Relay bubar
@@ -154,15 +170,39 @@ void loop(void)
   if  (pupuk_1 == "on") {
     for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
       // in steps of 1 degree
-      myservo.write(pos);              // tell servo to go to position in variable 'pos'
-      delay(15);                       // waits 15ms for the servo to reach the position
+      myservo.write(pos);                 // tell servo to go to position in variable 'pos'
+      delay(15);                          // waits 15ms for the servo to reach the position
     }
-    delay (10000);
+  }
+  //
+  if  (pupuk_1 == "off") {
     for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-      myservo.write(pos);              // tell servo to go to position in variable 'pos'
-      delay(15);                       // waits 15ms for the servo to reach the position
+      myservo.write(pos);                 // tell servo to go to position in variable 'pos'
+      delay(15);                          // waits 15ms for the servo to reach the position
     }
-    Firebase.set("pupuk/servo_1", "off");
+  }
+  //
+  if  (pupuk_1 == "oto") {
+    if (month() == 1 ) {
+      if (day() == 1) {
+        if (hour() == 13) {
+          if (minute() == 30) {
+            for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+              // in steps of 1 degree
+              myservo.write(pos);              // tell servo to go to position in variable 'pos'
+              delay(15);                       // waits 15ms for the servo to reach the position
+              //              Firebase.set("pupuk/servo_1_status", "on");
+            }
+            delay (10000);
+            for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+              myservo.write(pos);              // tell servo to go to position in variable 'pos'
+              delay(15);                       // waits 15ms for the servo to reach the position
+              //              Firebase.set("pupuk/servo_1_status", "off");
+            }
+          }
+        }
+      }
+    }
   }
   //Servo Bubar
 
@@ -176,11 +216,89 @@ void loop(void)
   parameter["kelembaban"] = output_tanah;
 
   JsonObject& waktu = root.createNestedObject("waktu");
-  waktu["hari"] = daysOfTheWeek[timeClient.getDay()];
-  waktu["jam"] = timeClient.getFormattedTime();
+  waktu["hari"] = (day() + String(" ") + month() + String(" ") + year());
+  waktu["jam"] = (hour() + String(":") + minute() + String(":") + second());
   root.prettyPrintTo(Serial);
 
   Firebase.push("vertical_garden", root);
   delay(1000);
   //Firebase Bubar
+
+  //    Serial.println((hour()) + String(":") + (minute()) + String(":") + (second()));
+  //  if (timeStatus() != timeNotSet) {
+  //    if (now() != prevDisplay) { //update the display only if time has changed
+  //      prevDisplay = now();
+  //      digitalClockDisplay();
+  //    }
+  //  }
+}
+
+void digitalClockDisplay()
+{
+  Serial.println(hour() + String(":") + minute() + String(":") + second());
+  Serial.println(day() + String(" ") + month() + String(" ") + year());
+}
+
+void printDigits(int digits)
+{
+  // utility for digital clock display: prints preceding colon and leading 0
+  Serial.print(":");
+  if (digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
+}
+
+const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
+byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
+
+time_t getNtpTime()
+{
+  IPAddress ntpServerIP; // NTP server's ip address
+
+  while (Udp.parsePacket() > 0) ; // discard any previously received packets
+  Serial.println("Transmit NTP Request");
+
+  WiFi.hostByName(ntpServerName, ntpServerIP);
+  Serial.print(ntpServerName);
+  Serial.print(": ");
+  Serial.println(ntpServerIP);
+  sendNTPpacket(ntpServerIP);
+  uint32_t beginWait = millis();
+  while (millis() - beginWait < 1500) {
+    int size = Udp.parsePacket();
+    if (size >= NTP_PACKET_SIZE) {
+      Serial.println("Receive NTP Response");
+      Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
+      unsigned long secsSince1900;
+
+      secsSince1900 =  (unsigned long)packetBuffer[40] << 24;
+      secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
+      secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
+      secsSince1900 |= (unsigned long)packetBuffer[43];
+      return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+    }
+  }
+  Serial.println("No NTP Response :-(");
+  return 0; // return 0 if unable to get the time
+}
+
+// send an NTP request to the time server at the given address
+void sendNTPpacket(IPAddress & address)
+{
+
+  memset(packetBuffer, 0, NTP_PACKET_SIZE);
+
+  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+  packetBuffer[1] = 0;            // Stratum, or type of clock
+  packetBuffer[2] = 6;            // Polling Interval
+  packetBuffer[3] = 0xEC;         // Peer Clock Precision
+
+  packetBuffer[12] = 49;
+  packetBuffer[13] = 0x4E;
+  packetBuffer[14] = 49;
+  packetBuffer[15] = 52;
+
+  Udp.beginPacket(address, 123);   //NTP requests are to port 123
+  Udp.write(packetBuffer, NTP_PACKET_SIZE);
+  Udp.endPacket();
 }

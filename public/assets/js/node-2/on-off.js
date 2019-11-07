@@ -24,11 +24,11 @@
 
         function funcoto() {
             firebase.database().ref("pupuk").set({
-                servo_2: "on"
+                servo_2: "oto"
             });
             Swal.fire(
-                'Fertillizer ON',
-                'Otomatically off in 10 seconds',
+                'Auto Pilot Mode',
+                'Auto Fertilizing every 3 months activated',
                 'warning'
             );
             getData();
