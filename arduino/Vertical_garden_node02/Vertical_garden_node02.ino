@@ -51,9 +51,7 @@ String air_1;
 String air_2;
 
 //Servo
-String pupuk_1;
 String pupuk_2;
-String pupuk_status;
 
 void setup()
 {
@@ -111,8 +109,7 @@ void setup()
 
   //Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.set("pupuk/servo_2", "off");
-  Firebase.set("pupuk/servo_2", "off");
+  Firebase.set("pupuk2/servo_2", "off");
 }
 
 time_t prevDisplay = 0; // when the digital clock was displayed
@@ -166,7 +163,7 @@ void loop()
   //Relay bubar
 
   //Servo Mulai
-  pupuk_2 = Firebase.getString("pupuk/servo_2");
+  pupuk_2 = Firebase.getString("pupuk2/servo_2");
   if  (pupuk_2 == "on") {
     for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
       // in steps of 1 degree

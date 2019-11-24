@@ -1,5 +1,5 @@
         function funcoff() {
-            firebase.database().ref("pupuk").set({
+            firebase.database().ref("pupuk1").set({
                 servo_1: "off"
             });
             Swal.fire(
@@ -11,7 +11,7 @@
         }
 
         function funcon() {
-            firebase.database().ref("pupuk").set({
+            firebase.database().ref("pupuk1").set({
                 servo_1: "on"
             });
             Swal.fire(
@@ -23,7 +23,7 @@
         }
 
         function funcoto() {
-            firebase.database().ref("pupuk").set({
+            firebase.database().ref("pupuk1").set({
                 servo_1: "oto"
             });
             Swal.fire(
@@ -38,7 +38,7 @@
             firebase.database().ref('/').once('value', function (snapshot) {
                 snapshot.forEach(function (childSnapshot) {
                     var childData = childSnapshot.val();
-                    document.getElementById("data").innerHTML = "Pupuk: " + childData['servo_1'];
+                    document.getElementById("data").innerHTML = "pupuk1: " + childData['servo_1'];
                 })
             })
         }
